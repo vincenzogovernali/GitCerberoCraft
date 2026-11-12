@@ -27,7 +27,9 @@ COMMANDS:
   push [--force]                 Push the current branch
   add [<file>...]                Stage files (all when none given)
   reset-files [<file>...]        Unstage files
-  commit -m <msg> [-a] [--amend] Commit
+  commit -m <msg> [-a] [--amend] [--push]
+                                 Commit (and push with --push)
+  check-token                    Test the saved GitHub/GitLab tokens
   branch [<name>] [--from <rev>] List or create branches
   checkout <branch>              Switch branch
   merge <branch>                 Merge into the current branch
@@ -154,6 +156,21 @@ fn run(cmd: &str, args: &[String], repo: PathBuf, s: &Settings) -> Result<String
             git::pull(&e, &repo, mode, Some(&mut progress))
         }
         "push" => git::push(&e, &repo, flag(args, "--force"), Some(&mut progress)),
+        "check-token" => {
+            let gh = match gcc_core::auth::github_whoami(&s.github_token) {
+                Ok(i) => gcc_core::auth::describe(&i),
+                Err(err) => err,
+            };
+            let gl = if s.gitlab_token.trim().is_empty() {
+                "-".to_string()
+            } else {
+                match gcc_core::auth::gitlab_whoami(&s.gitlab_token, "https://gitlab.com/") {
+                    Ok(i) => gcc_core::auth::describe(&i),
+                    Err(err) => err,
+                }
+            };
+            Ok(format!("GitHub: {gh}\nGitLab: {gl}"))
+        }
         "add" | "stage" => {
             if pos.is_empty() {
                 git::stage_all(&repo)?
@@ -176,7 +193,14 @@ fn run(cmd: &str, args: &[String], repo: PathBuf, s: &Settings) -> Result<String
                 git::stage_all(&repo)?;
             }
             let oid = git::commit(&e, &repo, &msg, flag(args, "--amend"))?;
-            Ok(format!("Committed {}", &oid.to_string()[..7]))
+            let done = format!("Committed {}", &oid.to_string()[..7]);
+            if flag(args, "--push") {
+                return match git::push(&e, &repo, false, Some(&mut progress)) {
+                    Ok(m) => Ok(format!("{done}\n{m}")),
+                    Err(err) => Err(format!("{done}, but the push failed:\n{err}")),
+                };
+            }
+            Ok(done)
         }
         "branch" => match pos.first() {
             None => mcp::Server::new(repo).call("git_branch_list", &serde_json::json!({})),

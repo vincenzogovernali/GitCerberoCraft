@@ -387,7 +387,8 @@
     "shortcuts": "Scorciatoie da tastiera",
     "show_onboarding": "Mostra di nuovo le schermate di benvenuto",
     "terminal": "Comando del terminale esterno (vuoto = predefinito di sistema)",
-    "tokens_hint": "Token di accesso personali facoltativi, usati per push/pull HTTPS quando il programma Git o un gestore di credenziali non è disponibile, e per elencare i repository durante il clone."
+    "test_token": "Prova token",
+    "tokens_hint": "Token di accesso personali per GitHub e GitLab. Quando un token è salvato viene sempre usato per push, pull e fetch HTTPS su quel sito (anche con il programma Git), al posto delle password ricordate dal sistema. Usati anche per elencare i repository durante il clone."
   },
   "profile": {
     "ai_assistant": "Assistente AI",
@@ -407,6 +408,23 @@
     "rebase": "Pull (rebase)"
   },
   "push": { "force": "Force push" },
+  "auth": {
+    "no_token": "Nessun token salvato. Aggiungilo in Preferenze > Integrazioni.",
+    "token_invalid": "Il token salvato è stato rifiutato (401): è errato, scaduto o revocato. Creane uno nuovo e incollalo in Preferenze > Integrazioni.",
+    "token_ok": "Il token funziona: accesso come {0}.",
+    "token_ok_classic": "Il token funziona: accesso come {0}. Permessi: {1}",
+    "no_token_github": "Nessun token GitHub salvato, quindi Git ha usato il gestore credenziali di sistema. Incolla un token in Preferenze > Integrazioni (token classico con il permesso 'repo', oppure token fine-grained con 'Contents: Read and write').",
+    "no_token_gitlab": "Nessun token GitLab salvato. Incollane uno in Preferenze > Integrazioni (permesso 'write_repository').",
+    "no_write": "Il token appartiene a '{0}', che non può scrivere su {1}. Usa un token dell'account proprietario del repository, oppure chiedi al proprietario di aggiungere '{0}' come collaboratore (o fai push sul tuo fork).",
+    "missing_scope": "Il token di '{0}' è un token classico senza il permesso 'repo' (ha: {1}). Modificalo su GitHub > Settings > Developer settings > Tokens e spunta 'repo'.",
+    "workflow_scope": "Il push modifica file in .github/workflows: il token deve avere anche il permesso 'workflow'.",
+    "fine_grained": "Il token di '{0}' è un token fine-grained: su GitHub > Settings > Developer settings > Fine-grained tokens verifica che includa il repository {1} e abbia 'Contents: Read and write'. I token per un'organizzazione possono richiedere anche l'approvazione dell'organizzazione.",
+    "repo_hidden": "Il token di '{0}' non vede {1}: il repository non è incluso nel token, oppure l'account non vi ha accesso.",
+    "sso": "L'organizzazione usa il single sign-on: autorizza il token su GitHub (Configure SSO accanto al token). {0}",
+    "looks_ok": "Il token di '{0}' ha accesso in scrittura. Se fallisce ancora, controlla le regole di protezione del branch nel repository.",
+    "gitlab_scope": "Accesso come '{0}'. Verifica che il token abbia il permesso 'write_repository' e che '{0}' abbia almeno il ruolo Developer in {1} (i branch protetti possono richiedere Maintainer).",
+    "ssh_remote": "Questo remote usa SSH, quindi i token non vengono usati: verifica che la tua chiave SSH sia aggiunta all'account, oppure passa all'indirizzo https:// del remote."
+  },
   "release": {
     "title": "Note di rilascio",
     "item1": "Grafo dei commit con branch, tag, branch remoti e lavoro in corso.",
@@ -477,6 +495,9 @@
     "amend": "Modifica il commit precedente",
     "commit": "Commit",
     "commit_n": "Commit delle modifiche a {0} file",
+    "commit_push": "Commit e push",
+    "commit_push_hint": "Esegui il commit, poi il push del branch sul suo remote",
+    "pushing_after": "Commit {0} eseguito, push in corso…",
     "description": "Descrizione",
     "discard_all": "Scarta tutte le modifiche",
     "discard_file": "Scarta le modifiche",

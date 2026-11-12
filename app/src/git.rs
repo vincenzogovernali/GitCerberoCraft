@@ -128,6 +128,15 @@ pub fn run_git(engine: &Engine, dir: &Path, args: &[&str], progress: Option<Prog
     if !engine.user_email.is_empty() {
         cmd.env("GIT_AUTHOR_EMAIL", &engine.user_email).env("GIT_COMMITTER_EMAIL", &engine.user_email);
     }
+    // Sign in to GitHub/GitLab with the saved tokens instead of whatever the
+    // system credential manager remembers (often another account -> 403).
+    if !engine.token_github.trim().is_empty() || !engine.token_gitlab.trim().is_empty() {
+        let mut urls: Vec<String> = args.iter().filter(|a| a.starts_with("http")).map(|a| a.to_string()).collect();
+        urls.extend(remote_urls(dir));
+        for (k, v) in crate::auth::as_env(&crate::auth::git_auth_config(&urls, &engine.token_github, &engine.token_gitlab)) {
+            cmd.env(k, v);
+        }
+    }
     let mut child = cmd.spawn().map_err(|e| format!("cannot start git: {e}"))?;
     let mut stdout = child.stdout.take().unwrap();
     let out_thread = std::thread::spawn(move || {
@@ -180,6 +189,43 @@ pub fn run_git(engine: &Engine, dir: &Path, args: &[&str], progress: Option<Prog
     }
 }
 
+/// Push and fetch addresses of every remote of the repository at `dir`.
+pub fn remote_urls(dir: &Path) -> Vec<String> {
+    let Ok(repo) = Repository::open(dir) else { return Vec::new() };
+    let mut out = Vec::new();
+    if let Ok(names) = repo.remotes() {
+        for n in names.iter().flatten() {
+            if let Ok(r) = repo.find_remote(n) {
+                for u in [r.url(), r.pushurl()].into_iter().flatten() {
+                    out.push(u.to_string());
+                }
+            }
+        }
+    }
+    out
+}
+
+fn remote_url_of(dir: &Path, remote: &str) -> String {
+    Repository::open(dir)
+        .ok()
+        .and_then(|r| r.find_remote(remote).ok().and_then(|x| x.pushurl().or(x.url()).map(|s| s.to_string())))
+        .unwrap_or_default()
+}
+
+/// When the server refused, replace Git's message with a plain explanation.
+fn explain(engine: &Engine, dir: &Path, remote: Option<&str>, r: GResult<String>) -> GResult<String> {
+    match r {
+        Err(e) if crate::auth::is_auth_refusal(&e) => {
+            let url = match remote {
+                Some(n) => remote_url_of(dir, n),
+                None => remote_urls(dir).into_iter().next().unwrap_or_default(),
+            };
+            Err(crate::auth::explain_refusal(&url, &engine.token_github, &engine.token_gitlab, &e))
+        }
+        other => other,
+    }
+}
+
 fn parse_percent(l: &str) -> Option<f32> {
     let i = l.find('%')?;
     let start = l[..i].rfind(|c: char| !c.is_ascii_digit()).map(|x| x + 1).unwrap_or(0);
@@ -201,8 +247,8 @@ fn parse_percent(l: &str) -> Option<f32> {
 fn callbacks<'a>(engine: &Engine, progress: Option<Progress<'a>>) -> RemoteCallbacks<'a> {
     let mut cb = RemoteCallbacks::new();
     let mut tries = 0;
-    let gh = engine.token_github.clone();
-    let gl = engine.token_gitlab.clone();
+    let gh = crate::auth::clean_token(&engine.token_github);
+    let gl = crate::auth::clean_token(&engine.token_gitlab);
     cb.credentials(move |url, username, allowed| {
         tries += 1;
         if tries > 5 {
@@ -222,10 +268,11 @@ fn callbacks<'a>(engine: &Engine, progress: Option<Progress<'a>>) -> RemoteCallb
             }
         }
         if allowed.contains(CredentialType::USER_PASS_PLAINTEXT) {
-            if url.contains("github") && !gh.is_empty() && tries <= 2 {
-                return Cred::userpass_plaintext(username.unwrap_or("x-access-token"), &gh);
+            let host = crate::auth::host_of(url).map(|h| h.0);
+            if host == Some(crate::auth::Host::GitHub) && !gh.is_empty() && tries <= 2 {
+                return Cred::userpass_plaintext("x-access-token", &gh);
             }
-            if url.contains("gitlab") && !gl.is_empty() && tries <= 2 {
+            if host == Some(crate::auth::Host::GitLab) && !gl.is_empty() && tries <= 2 {
                 return Cred::userpass_plaintext("oauth2", &gl);
             }
             if let Ok(cfg) = git2::Config::open_default() {
@@ -1139,6 +1186,35 @@ pub fn abort_merge(engine: &Engine, path: &Path) -> GResult<()> {
 }
 
 pub fn fetch(engine: &Engine, path: &Path, remote: Option<&str>, progress: Option<Progress>) -> GResult<String> {
+    explain(engine, path, remote, fetch_inner(engine, path, remote, progress))
+}
+
+pub fn pull(engine: &Engine, path: &Path, mode: crate::config::PullMode, progress: Option<Progress>) -> GResult<String> {
+    let remote = upstream_remote(path);
+    explain(engine, path, remote.as_deref(), pull_inner(engine, path, mode, progress))
+}
+
+pub fn push(engine: &Engine, path: &Path, force: bool, progress: Option<Progress>) -> GResult<String> {
+    let remote = upstream_remote(path).or_else(|| remote_names(path).into_iter().next());
+    explain(engine, path, remote.as_deref(), push_inner(engine, path, force, progress))
+}
+
+fn remote_names(path: &Path) -> Vec<String> {
+    Repository::open(path).ok().and_then(|r| r.remotes().ok().map(|n| n.iter().flatten().map(|s| s.to_string()).collect())).unwrap_or_default()
+}
+
+/// The remote the current branch tracks, if any.
+fn upstream_remote(path: &Path) -> Option<String> {
+    let repo = Repository::open(path).ok()?;
+    let head = repo.head().ok()?;
+    let name = head.shorthand()?.to_string();
+    let b = repo.find_branch(&name, BranchType::Local).ok()?;
+    let up = b.upstream().ok()?;
+    let n = up.name().ok().flatten()?.to_string();
+    n.split('/').next().map(|s| s.to_string())
+}
+
+fn fetch_inner(engine: &Engine, path: &Path, remote: Option<&str>, progress: Option<Progress>) -> GResult<String> {
     if engine.cli.is_some() {
         let mut args = vec!["fetch", "--progress", "--prune"];
         match remote {
@@ -1171,7 +1247,7 @@ pub fn fetch(engine: &Engine, path: &Path, remote: Option<&str>, progress: Optio
     Ok(format!("Fetched {}", names.join(", ")))
 }
 
-pub fn pull(engine: &Engine, path: &Path, mode: crate::config::PullMode, progress: Option<Progress>) -> GResult<String> {
+fn pull_inner(engine: &Engine, path: &Path, mode: crate::config::PullMode, progress: Option<Progress>) -> GResult<String> {
     use crate::config::PullMode;
     if engine.cli.is_some() {
         let args: Vec<&str> = match mode {
@@ -1195,14 +1271,14 @@ pub fn pull(engine: &Engine, path: &Path, mode: crate::config::PullMode, progres
         let remote = up_name.split('/').next().unwrap_or("origin").to_string();
         (remote, up_name)
     };
-    fetch(engine, path, Some(&remote), progress)?;
+    fetch_inner(engine, path, Some(&remote), progress)?;
     if mode == PullMode::FetchAll {
         return Ok("Fetched".into());
     }
     merge(engine, path, &upstream, mode == PullMode::FastForwardOnly)
 }
 
-pub fn push(engine: &Engine, path: &Path, force: bool, progress: Option<Progress>) -> GResult<String> {
+fn push_inner(engine: &Engine, path: &Path, force: bool, progress: Option<Progress>) -> GResult<String> {
     let (branch, remote, has_upstream) = {
         let repo = open(path)?;
         let head = repo.head().es()?;

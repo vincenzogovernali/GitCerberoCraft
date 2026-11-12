@@ -494,11 +494,33 @@ fn integrations(app: &mut App, ui: &mut Ui) {
     ui.label(egui::RichText::new(t("prefs.tokens_hint")).color(TEXT_DIM));
     ui.add_space(8.0);
     let w = ui.available_width().min(560.0);
+    let mut changed = false;
     ui.label(egui::RichText::new("GitHub token").color(TEXT));
-    ui.add_sized([w, 28.0], egui::TextEdit::singleline(&mut app.settings.github_token).password(true).hint_text("ghp_…"));
+    ui.horizontal(|ui| {
+        changed |= ui.add_sized([w, 28.0], egui::TextEdit::singleline(&mut app.settings.github_token).password(true).hint_text("ghp_… / github_pat_…")).changed();
+        if ui.button(t("prefs.test_token")).clicked() {
+            let tok = app.settings.github_token.clone();
+            app.spawn_job(t("prefs.test_token"), None, move |_| {
+                gcc_core::auth::github_whoami(&tok).map(|i| JobOut::Msg(gcc_core::auth::describe(&i)))
+            });
+        }
+    });
     ui.add_space(6.0);
     ui.label(egui::RichText::new("GitLab token").color(TEXT));
-    ui.add_sized([w, 28.0], egui::TextEdit::singleline(&mut app.settings.gitlab_token).password(true).hint_text("glpat-…"));
+    ui.horizontal(|ui| {
+        changed |= ui.add_sized([w, 28.0], egui::TextEdit::singleline(&mut app.settings.gitlab_token).password(true).hint_text("glpat-…")).changed();
+        if ui.button(t("prefs.test_token")).clicked() {
+            let tok = app.settings.gitlab_token.clone();
+            app.spawn_job(t("prefs.test_token"), None, move |_| {
+                gcc_core::auth::gitlab_whoami(&tok, "https://gitlab.com/").map(|i| JobOut::Msg(gcc_core::auth::describe(&i)))
+            });
+        }
+    });
+    if changed {
+        // Use the new token right away for push, pull and fetch.
+        app.engine.token_github = app.settings.github_token.trim().to_string();
+        app.engine.token_gitlab = app.settings.gitlab_token.trim().to_string();
+    }
 }
 
 fn mcp(app: &mut App, ui: &mut Ui) {

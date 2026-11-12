@@ -227,6 +227,12 @@ impl RepoTab {
             if solid_button(ui, &label, CREATE_GREEN, Vec2::new(w, 34.0), can).clicked() {
                 acts.push(RepoAction::Commit);
             }
+            ui.add_space(4.0);
+            let cp = solid_button(ui, &format!("{} {}", ic::ARROW_UP, t("wip.commit_push")), BROWSE_BLUE, Vec2::new(w, 30.0), can);
+            if cp.clicked() {
+                acts.push(RepoAction::CommitPush);
+            }
+            cp.on_hover_text(t("wip.commit_push_hint"));
         });
     }
 

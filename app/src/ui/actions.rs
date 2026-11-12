@@ -191,7 +191,15 @@ pub fn handle(app: &mut App, id: u64, action: RepoAction) {
         RepoAction::DiscardAll => {
             app.modal = Some(Modal::Confirm { title: t("wip.discard_all"), text: t("confirm.discard_all"), action: ConfirmAction::DiscardAll(id) });
         }
-        RepoAction::Commit => commit(app, id),
+        RepoAction::Commit => {
+            commit(app, id);
+        }
+        RepoAction::CommitPush => {
+            if let Some(oid) = commit(app, id) {
+                app.toast(tf("wip.pushing_after", &[&oid.to_string()[..7]]), false);
+                app.spawn_job(t("jobs.push"), Some(id), move |p| git::push(&e, &path, false, Some(p)).map(JobOut::Msg));
+            }
+        }
         RepoAction::OpenTerminal => {
             if let Err(err) = gcc_core::util::open_terminal(&path, &app.settings.external_terminal) {
                 app.toast(err, true);
@@ -329,9 +337,10 @@ fn after_wip_change(app: &mut App, id: u64) {
     }
 }
 
-pub fn commit(app: &mut App, id: u64) {
+/// Commit what is staged; returns the new commit when it worked.
+pub fn commit(app: &mut App, id: u64) -> Option<git2::Oid> {
     let e = app.engine.clone();
-    let Some(r) = app.tab_mut(id) else { return };
+    let Some(r) = app.tab_mut(id) else { return None };
     let path = r.path.clone();
     let mut msg = r.summary.trim().to_string();
     if !r.description.trim().is_empty() {
@@ -339,8 +348,10 @@ pub fn commit(app: &mut App, id: u64) {
     }
     let amend = r.amend;
     let before = r.snap.as_ref().and_then(|s| s.head_oid);
+    let mut made = None;
     match git::commit(&e, &path, &msg, amend) {
         Ok(oid) => {
+            made = Some(oid);
             if let Some(r) = app.tab_mut(id) {
                 r.summary.clear();
                 r.description.clear();
@@ -356,6 +367,7 @@ pub fn commit(app: &mut App, id: u64) {
         Err(err) => app.toast(err, true),
     }
     reload(app, id);
+    made
 }
 
 fn do_reset(app: &mut App, id: u64, oid: git2::Oid, mode: &str) {

@@ -2,6 +2,7 @@
 //! the MCP server. Shared by the desktop app and the command-line tool.
 
 pub mod ai;
+pub mod auth;
 pub mod config;
 pub mod git;
 pub mod gitdl;

@@ -84,6 +84,7 @@ pub enum RepoAction {
     Discard(Vec<String>),
     DiscardAll,
     Commit,
+    CommitPush,
     OpenTerminal,
     OpenFolder,
     OpenEditor,

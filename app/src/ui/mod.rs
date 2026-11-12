@@ -316,6 +316,16 @@ impl App {
         app.add_tab(TabKind::Home, true);
         if let Some(p) = opts.open {
             app.open_repo(p);
+            // A picture of a repository with changes shows the commit panel.
+            if app.screenshot.is_some() {
+                if let Some(id) = app.active_repo_id() {
+                    if let Some(r) = app.tab_mut(id) {
+                        if r.has_wip() {
+                            r.select(repo::Sel::Wip);
+                        }
+                    }
+                }
+            }
         }
         if app.engine.cli.is_none() && app.persist {
             app.notify(t("notify.git_missing"), false);
@@ -407,7 +417,9 @@ impl App {
         let text = text.into();
         self.notifications.insert(0, (text.clone(), error));
         self.notifications.truncate(50);
-        self.toasts.push(Toast { text, error, until: now + if error { 8.0 } else { 4.0 } });
+        // Long explanations (e.g. why a push was refused) stay until read: click to close.
+        let secs = if error { (8.0 + text.chars().count() as f64 / 20.0).min(90.0) } else { 4.0 };
+        self.toasts.push(Toast { text, error, until: now + secs });
     }
 
     pub fn notify(&mut self, text: impl Into<String>, error: bool) {

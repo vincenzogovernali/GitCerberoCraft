@@ -1,3 +1,13 @@
-# Clean room
+# What we found in C:\Users\Vinci\AppData\Local\gitkraken\gitkraken.exe
 
-Nothing inside C:\Users\Vinci\AppData\Local\gitkraken\gitkraken.exe was read: its files, its folder and its code stay closed, and the tools that look inside are off. Build from the person's request and description and the pictures in reference/, and ask them with core_person_ask when something isn't clear.
+A first look failed: C:\Users\Vinci\AppData\Local\gitkraken\gitkraken.exe: Impossibile trovare il percorso specificato. (os error 3)
+
+## Ghidra
+
+No program was found in C:\Users\Vinci\AppData\Local\gitkraken\gitkraken.exe, so Ghidra couldn't be used.
+
+## The game's own files
+
+Folder: C:\Users\Vinci\AppData\Local\gitkraken
+
+No maps, pictures, models or sounds were found here.

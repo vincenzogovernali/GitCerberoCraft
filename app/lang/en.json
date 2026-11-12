@@ -387,7 +387,8 @@
     "shortcuts": "Keyboard shortcuts",
     "show_onboarding": "Show the welcome screens again",
     "terminal": "External terminal command (empty = system default)",
-    "tokens_hint": "Optional personal access tokens, used for HTTPS push/pull when the Git program or a credential manager is not available, and to list repositories when cloning."
+    "test_token": "Test token",
+    "tokens_hint": "Personal access tokens for GitHub and GitLab. When a token is saved, it is always used for push, pull and fetch over HTTPS on that site (also with the Git program), instead of the passwords remembered by the system. Also used to list repositories when cloning."
   },
   "profile": {
     "ai_assistant": "AI assistant",
@@ -407,6 +408,23 @@
     "rebase": "Pull (rebase)"
   },
   "push": { "force": "Force push" },
+  "auth": {
+    "no_token": "No token saved. Add one in Preferences > Integrations.",
+    "token_invalid": "The saved token was refused (401): it is wrong, expired or revoked. Create a new one and paste it in Preferences > Integrations.",
+    "token_ok": "Token works: signed in as {0}.",
+    "token_ok_classic": "Token works: signed in as {0}. Scopes: {1}",
+    "no_token_github": "No GitHub token is saved, so Git used the system credential manager. Paste a token in Preferences > Integrations (classic token with the 'repo' scope, or a fine-grained token with 'Contents: Read and write').",
+    "no_token_gitlab": "No GitLab token is saved. Paste one in Preferences > Integrations (scope 'write_repository').",
+    "no_write": "The token belongs to '{0}', which cannot write to {1}. Use a token of the account that owns the repository, or ask the owner to add '{0}' as a collaborator (or push to your fork).",
+    "missing_scope": "The token of '{0}' is a classic token without the 'repo' scope (it has: {1}). Edit it on GitHub > Settings > Developer settings > Tokens and tick 'repo'.",
+    "workflow_scope": "The push changes files in .github/workflows: the token also needs the 'workflow' scope.",
+    "fine_grained": "The token of '{0}' is a fine-grained token: on GitHub > Settings > Developer settings > Fine-grained tokens, make sure it includes the repository {1} and has 'Contents: Read and write'. Tokens for an organisation may also need the organisation's approval.",
+    "repo_hidden": "The token of '{0}' cannot see {1}: the repository is not included in the token, or the account has no access to it.",
+    "sso": "The organisation uses single sign-on: authorise the token for it on GitHub (Configure SSO next to the token). {0}",
+    "looks_ok": "The token of '{0}' has write access. If it still fails, check the branch protection rules of the repository.",
+    "gitlab_scope": "Signed in as '{0}'. Check that the token has the 'write_repository' scope and that '{0}' has at least the Developer role in {1} (protected branches may need Maintainer).",
+    "ssh_remote": "This remote uses SSH, so tokens are not used: check that your SSH key is added to your account, or switch the remote to its https:// address."
+  },
   "release": {
     "title": "Release Notes",
     "item1": "Commit graph with branches, tags, remote branches and work in progress.",
@@ -477,6 +495,9 @@
     "amend": "Amend previous commit",
     "commit": "Commit",
     "commit_n": "Commit changes to {0} files",
+    "commit_push": "Commit and push",
+    "commit_push_hint": "Commit, then push the branch to its remote",
+    "pushing_after": "Committed {0}, pushing…",
     "description": "Description",
     "discard_all": "Discard all changes",
     "discard_file": "Discard changes",

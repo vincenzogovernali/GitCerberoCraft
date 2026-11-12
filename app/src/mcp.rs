@@ -37,7 +37,7 @@ pub fn tools() -> Vec<Value> {
         tool("git_push", "Push the current branch (sets the upstream if missing).", json!({"force": b("Force with lease")}), &[]),
         tool("git_stage", "Stage files (all files when 'files' is empty).", json!({"files": {"type": "array", "items": {"type": "string"}}}), &[]),
         tool("git_unstage", "Unstage files (all when 'files' is empty).", json!({"files": {"type": "array", "items": {"type": "string"}}}), &[]),
-        tool("git_commit", "Commit staged changes.", json!({"message": s("Commit message"), "all": b("Stage every change first"), "amend": b("Amend the last commit")}), &["message"]),
+        tool("git_commit", "Commit staged changes.", json!({"message": s("Commit message"), "all": b("Stage every change first"), "amend": b("Amend the last commit"), "push": b("Push the branch to its remote after committing")}), &["message"]),
         tool("git_branch_list", "List local and remote branches.", json!({}), &[]),
         tool("git_branch_create", "Create a branch.", json!({"name": s("Branch name"), "from": s("Start point (default HEAD)"), "checkout": b("Switch to it")}), &["name"]),
         tool("git_branch_delete", "Delete a local branch.", json!({"name": s("Branch name")}), &["name"]),
@@ -146,7 +146,14 @@ impl Server {
                     git::stage_all(&repo)?;
                 }
                 let oid = git::commit(&e, &repo, &str_arg("message"), args["amend"].as_bool().unwrap_or(false))?;
-                Ok(format!("Committed {}", &oid.to_string()[..7]))
+                let done = format!("Committed {}", &oid.to_string()[..7]);
+                if args["push"].as_bool().unwrap_or(false) {
+                    return match git::push(&e, &repo, false, None) {
+                        Ok(m) => Ok(format!("{done}\n{m}")),
+                        Err(err) => Err(format!("{done}, but the push failed:\n{err}")),
+                    };
+                }
+                Ok(done)
             }
             "git_branch_list" => {
                 let s = git::load(&repo, 1)?;
