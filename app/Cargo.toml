@@ -1,0 +1,45 @@
+[package]
+name = "gitcerberocraft"
+version = "1.0.0"
+edition = "2021"
+description = "GitCerberoCraft - a free, graphical Git client with a CLI and MCP server"
+default-run = "gitcerberocraft"
+
+[lib]
+name = "gcc_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "gitcerberocraft"
+path = "src/main.rs"
+
+[[bin]]
+name = "gitcerberocraft-cli"
+path = "src/bin/gitcerberocraft-cli.rs"
+
+[dependencies]
+eframe = { version = "0.29", default-features = false, features = ["default_fonts", "glow", "accesskit", "wayland", "x11"] }
+egui-phosphor = "0.7"
+git2 = { version = "0.19", default-features = false, features = ["https", "ssh", "vendored-libgit2"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = { version = "2", features = ["json"] }
+dirs = "5"
+sys-locale = "0.3"
+rfd = "0.15"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[build-dependencies]
+image = { version = "0.25", default-features = false, features = ["png", "ico"] }
+embed-resource = "2"
+
+[target.'cfg(not(windows))'.dependencies]
+git2 = { version = "0.19", default-features = false, features = ["https", "ssh", "vendored-libgit2", "vendored-openssl"] }
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2

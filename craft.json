@@ -1,0 +1,138 @@
+{
+  "version": 5,
+  "name": "gitkraken",
+  "request": "Creami l'app in maniera identica in RUST e segui queste indicazioni:\n- Crea anche una versione cli che espone un server MCP per eseguire fetch, pull, commit, etc\n- L'app deve avere dei file per le lingue e voglio che se aggiungo un nuovo file la lingua venga rilevata in maniera autonoma\n- Rispetta la grafica dell'app originale\n- Fai sì che posso integrare un AI o per ACP o per APi per chiedere consigli su codice committato o altro\n- Togli tutti i riferimenti a GitKraken e trasformali in GitCerberoCraft\n- Togli riferimenti a Trial, Premium e cose a pagamento\n- Devo avere la possibilità di poter scaricare GIT a seconda del sistema operativo e scegliere anche la versione presente dal sito\n- Sei libero di aggiungere quello che ritieni opportuno che può servire a questa app",
+  "target": {
+    "kind": "local",
+    "path": "C:\\Users\\Vinci\\AppData\\Local\\gitkraken\\gitkraken.exe"
+  },
+  "stack": "Rust + macroquad",
+  "status": "ready",
+  "note": "Ready: 3 of 4 checks pass, 3 of 3 claims hold; 1 comparison remains unverified. 2 questions about the original are still open.",
+  "created_ms": 1794428872231,
+  "updated_ms": 1794503958713,
+  "checks": [
+    {
+      "round": 1,
+      "check": "build",
+      "passed": true,
+      "similarity": null,
+      "note": "Build succeeded.",
+      "artifacts": [],
+      "at_ms": 1794503135828
+    },
+    {
+      "round": 1,
+      "check": "app-screenshot",
+      "passed": true,
+      "similarity": null,
+      "note": "The program starts and draws (1232×760). It looks about 83% like reference/picture-5.png.",
+      "artifacts": [
+        "checks\\round-0\\screenshot.png"
+      ],
+      "at_ms": 1794503136455
+    },
+    {
+      "round": 1,
+      "check": "game-self-test",
+      "passed": true,
+      "similarity": null,
+      "note": "The self-test plays the core loop: move (pressed Down twice in the commit graph: selection Commit(1) on \"add feature\"), act (staged 2 files and committed: 3 -> 4 commits, newest \"Self-test commit\", working tree clean: true, undo entries: 1), hud (toolbar true, left panel true, graph header true, rows drawn 4, status bar true).",
+      "artifacts": [
+        "checks\\round-0\\self-test.json"
+      ],
+      "at_ms": 1794503137015,
+      "claims": [
+        {
+          "title": "In play, the player moves",
+          "passed": true
+        },
+        {
+          "title": "In play, the player's main action works",
+          "passed": true
+        },
+        {
+          "title": "In play, the on-screen information is drawn",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "check": "mechanics",
+      "passed": true,
+      "similarity": null,
+      "note": "app/mechanics.json has 36 values (27 with a source, 9 estimated). The sheet is readable; its behavior is unverified. No runtime measurement was compared with these values. A source literal or a core-loop self-test alone cannot establish that the build uses them.",
+      "artifacts": [],
+      "at_ms": 1794503137015,
+      "unknowns": [
+        "Mechanics behavior has not been measured against app/mechanics.json."
+      ]
+    },
+    {
+      "round": 2,
+      "check": "build",
+      "passed": true,
+      "similarity": null,
+      "note": "Build succeeded.",
+      "artifacts": [],
+      "at_ms": 1794503953007
+    },
+    {
+      "round": 2,
+      "check": "app-screenshot",
+      "passed": true,
+      "similarity": null,
+      "note": "The program starts and draws (1232×760). It looks about 83% like reference/picture-5.png.",
+      "artifacts": [
+        "checks\\round-0\\screenshot.png"
+      ],
+      "at_ms": 1794503953595
+    },
+    {
+      "round": 2,
+      "check": "game-self-test",
+      "passed": true,
+      "similarity": null,
+      "note": "The self-test plays the core loop: move (pressed Down twice in the commit graph: selection Commit(1) on \"add feature\"), act (staged 2 files and committed: 3 -> 4 commits, newest \"Self-test commit\", working tree clean: true, undo entries: 1), hud (toolbar true, left panel true, graph header true, rows drawn 4, status bar true).",
+      "artifacts": [
+        "checks\\round-0\\self-test.json"
+      ],
+      "at_ms": 1794503954182,
+      "claims": [
+        {
+          "title": "In play, the player moves",
+          "passed": true
+        },
+        {
+          "title": "In play, the player's main action works",
+          "passed": true
+        },
+        {
+          "title": "In play, the on-screen information is drawn",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "check": "mechanics",
+      "passed": true,
+      "similarity": null,
+      "note": "app/mechanics.json has 36 values (27 with a source, 9 estimated). The sheet is readable; its behavior is unverified. No runtime measurement was compared with these values. A source literal or a core-loop self-test alone cannot establish that the build uses them.",
+      "artifacts": [],
+      "at_ms": 1794503954183,
+      "unknowns": [
+        "Mechanics behavior has not been measured against app/mechanics.json."
+      ]
+    }
+  ],
+  "agent_session": "ced0a77a-aaa0-41cf-8f42-186db8ff95b5",
+  "agent_session_by": "claude-code",
+  "agent_session_deep": false,
+  "capture_deep": false,
+  "allowed_actions": [],
+  "last_reply": "I'll copy the icon into the app's own folder and use it for the window/taskbar icon, the program file (.exe) icon and the logo spots inside the app.rc.exe exists, so the .exe icon can be embedded. Adding a small build step.Now use it as the window icon and in place of the drawn logo inside the app.Now the in-app logo (status bar, About, welcome screen).Built. Let me verify the program file carries the icon and take a fresh screenshot.The program file now shows the red three-headed icon, and the app's logo spot in the status bar uses it; the rest of the screen still matches the reference. Running the check.Ho impostato la tua icona: ora è l'icona della finestra e della barra delle applicazioni, ed è inserita nei due programmi (l'app e la versione a riga di comando), così Esplora file la mostra. Ho controllato il programma principale e ha davvero il cane rosso a tre teste. Dentro l'app sostituisce anche il logo disegnato prima, cioè quello in basso a destra nella barra di stato, nella finestra \"Informazioni\" e nella schermata di benvenuto. Il controllo automatico è passato e il resto dell'aspetto non è cambiato.",
+  "asset_budget_usd": 5.0,
+  "generate_assets": false
+}

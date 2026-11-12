@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "detail": "pressed Down twice in the commit graph: selection Commit(1) on \"add feature\"",
+      "passed": true,
+      "step": "move"
+    },
+    {
+      "detail": "staged 2 files and committed: 3 -> 4 commits, newest \"Self-test commit\", working tree clean: true, undo entries: 1",
+      "passed": true,
+      "step": "act"
+    },
+    {
+      "detail": "toolbar true, left panel true, graph header true, rows drawn 4, status bar true",
+      "passed": true,
+      "step": "hud"
+    }
+  ],
+  "version": 1
+}
